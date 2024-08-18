@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Posts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css"
+        integrity="sha512-/mZ1FHPkg6EKcxo0fKXF51ak6Cr2ocgDi5ytaTBjsQZIH/RNs6GF6+oId/vPe3eJB836T36nXwVh/WBl/cWT4w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: #f4f4f4;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        .post {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 40px;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+
+        .post h2 {
+            color: #007BFF;
+            margin-bottom: 15px;
+        }
+
+        .post p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .post code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.95em;
+            color: #c7254e;
+        }
+
+        pre {
+            background-color: #282c34;
+            padding: 15px;
+            border-radius: 8px;
+            color: #abb2bf;
+            overflow-x: auto;
+            line-height: 1.5;
+            margin-top: 15px;
+        }
+
+        pre code {
+            color: #f8f8f2;
+        }
+
+        .post .meta {
+            font-size: 0.9em;
+            color: #999;
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .read-more {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: inline-block;
+        }
+
+        .read-more:hover {
+            background-color: #0056b3;
+        }
+
+        .read-more:focus {
+            outline: none;
+        }
+
+        .collapsed {
+            max-height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .collapsed::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(transparent, #fff);
+        }
+        .search-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Blog Posts</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search posts...">
+        </div>
+        <h2><a href="./create-post.html">Create a Post</a></h2>
+        <div id="posts"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
+        integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        let offset = 0;  // Start with the first set of posts
+        const limit = 10;  // Number of posts to load each time
+
+        async function fetchPosts() {
+            const response = await fetch(`http://localhost:3000/api/posts?limit=${limit}&offset=${offset}`);
+            const posts = await response.json();
+
+            const postsContainer = document.getElementById('posts');
+
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post';
+
+                const postTitle = document.createElement('h2');
+                postTitle.textContent = post.title;
+
+                const postContent = document.createElement('div');
+                postContent.innerHTML = post.content;
+
+                // Add a collapsed class if content is too long
+                if (post.content.length > 500) {
+                    postContent.classList.add('collapsed');
+                }
+
+                postContent.querySelectorAll('pre code').forEach(block => {
+                    Prism.highlightElement(block);
+                });
+
+                const postMeta = document.createElement('p');
+                postMeta.className = 'meta';
+                postMeta.textContent = `Posted on ${new Date(post.created_date).toLocaleDateString()} | Last updated on ${new Date(post.updated_date).toLocaleDateString()}`;
+
+                // Read More button
+                if (post.content.length > 500) {
+                    const readMoreBtn = document.createElement('button');
+                    readMoreBtn.textContent = 'Read More';
+                    readMoreBtn.className = 'read-more';
+                    readMoreBtn.addEventListener('click', () => {
+                        postContent.classList.toggle('collapsed');
+                        readMoreBtn.textContent = postContent.classList.contains('collapsed') ? 'Read More' : 'Show Less';
+                    });
+
+                    postElement.appendChild(postTitle);
+                    postElement.appendChild(postContent);
+                    postElement.appendChild(readMoreBtn);
+                } else {
+                    postElement.appendChild(postTitle);
+                    postElement.appendChild(postContent);
+                }
+
+                postElement.appendChild(postMeta);
+                postsContainer.appendChild(postElement);
+            });
+            offset += limit;
+            initializeSearch()
+        }
+
+        function initializeSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', () => {
+                const filter = searchInput.value.toLowerCase();
+                const posts = document.querySelectorAll('.post');
+                posts.forEach(post => {
+                    if (post.textContent.toLowerCase().includes(filter)) {
+                        post.style.display = '';
+                    } else {
+                        post.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        fetchPosts();
+
+        // Lazy load more posts when the user scrolls to the bottom
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+                fetchPosts();
+            }
+        });
+    </script>
+</body>
+
+</html>

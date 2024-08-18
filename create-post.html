@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Blog Post</title>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        .ql-container {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .ql-toolbar {
+            border-radius: 4px 4px 0 0;
+        }
+
+        .ql-container {
+            height: 200px;
+            border-radius: 0 0 4px 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Create a New Post</h1>
+        <form id="postForm">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" placeholder="Enter the title of your post" required>
+
+            <label for="content">Content:</label>
+            <div id="editor"></div>
+
+            <label for="tags">Tag(s)</label>
+            <input type="text" id="tags" name="tags">
+
+            <label for="category">category</label>
+            <input type="text" id="category" name="category">
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, 3, 4, 5, 6, false] }],
+                    [{ font: ['serif', 'sans-serif', 'monospace', 'custom-font'] }], // Add custom fonts
+                    [{ size: ['small', false, 'large', 'huge', 'custom-size'] }], // Add custom sizes
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ color: [] }, { background: [] }],
+                    [{ script: 'sub' }, { script: 'super' }],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    [{ align: [] }],
+                    ['link', 'image', 'video'],
+                    ['clean'],
+                    ['code-block']
+                ]
+            }
+        });
+
+        const form = document.getElementById('postForm');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('content', quill.root.innerHTML);
+
+            const response = await fetch('http://localhost:3000/api/posts', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            console.log(result);
+            // Optionally reset the form after submission
+            form.reset();
+            quill.root.innerHTML = '';
+        };
+    </script>
+</body>
+
+</html>
